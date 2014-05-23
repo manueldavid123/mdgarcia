@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Moves app not installed", Toast.LENGTH_SHORT).show();
         }
 
-    }
+    } 
 
 
     /**
