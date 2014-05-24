@@ -1,20 +1,41 @@
 package com.example.movesapp;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * Demonstrates app-to-app and browser-app-browser integration with Moves API authorize flow.
  */
+@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+@SuppressLint({ "ShowToast", "NewApi" })
 public class MainActivity extends Activity {
 
-    private static final String TAG = "AppsDemo";
+	private static final String TAG = "AppsDemo";
 
     private static final String CLIENT_ID = "krMl6FcP0kn1Hf00ElX0ai1WIzl65fEf";
 
@@ -23,14 +44,14 @@ public class MainActivity extends Activity {
     private static final String CLIENT_SECRET = "7CBa4CNLhEfXqWnykygJ1M0ka7172PEAwwAH_1ulvGg33Zjp_7HlfqfTzNO3RmUL";
     
     private static final int REQUEST_AUTHORIZE = 1;
-    
+   
     private static String CODE="";
     
     
 
-    private CheckBox mLocation;
-
-    private CheckBox mActivity;
+    
+    private TextView mTextView;
+    
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,11 +63,10 @@ public class MainActivity extends Activity {
                 doRequestAuthInApp();
             }
         });
-        
-        mLocation = (CheckBox) findViewById(R.id.location);
-        mActivity = (CheckBox) findViewById(R.id.activity);
+
+        mTextView = (TextView) findViewById(R.id.textView);
     }
-    public void setAuth(String code){
+    public void setCode(String code){
     	
     	MainActivity.CODE = code;
     }
@@ -78,15 +98,43 @@ public class MainActivity extends Activity {
      *
      * @see https://dev.moves-app.com/docs/api
      */
-    @Override
+    @SuppressLint("NewApi")
+	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
+    	StrictMode.setThreadPolicy(policy); 
         switch (requestCode) {
             case REQUEST_AUTHORIZE:
                 Uri resultUri = data.getData();
+                setCode(resultUri.getQueryParameter("code"));
                 Toast.makeText(this,
-                        (resultCode == RESULT_OK ? "Authorized: " : "Failed: ")
-                        + resultUri, Toast.LENGTH_LONG).show();
+                        (resultCode == RESULT_OK ? "Acceso Autorizado: " : "Failed: ")
+                        + "", Toast.LENGTH_LONG).show();
+               if(resultCode == RESULT_OK){ 
+            	   HttpClient cliente = new DefaultHttpClient();
+                   HttpPost peticion = new HttpPost("https://api.moves-app.com/oauth/v1/access_token");
+                   try{
+                       List<NameValuePair> parametros = new ArrayList<NameValuePair>();
+                       parametros.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                       parametros.add(new BasicNameValuePair("code", CODE));
+                       parametros.add(new BasicNameValuePair("client_id", CLIENT_ID));
+                       parametros.add(new BasicNameValuePair("client_secret", CLIENT_SECRET));
+                       parametros.add(new BasicNameValuePair("redirect_uri", REDIRECT_URI));
+                       peticion.setEntity(new UrlEncodedFormEntity(parametros));
+                       HttpResponse respuesta = cliente.execute(peticion);
+                       String str_respuesta = EntityUtils.toString(respuesta.getEntity());
+                       JSONObject json = new JSONObject(str_respuesta);
+                       
+                       mTextView.setText("Access Token: "+json.getString("access_token"));
+                   }catch(Exception e){
+                       Toast.makeText(this, "Ocurrio un error: " + e.toString() , Toast.LENGTH_LONG).show();
+                       mTextView.setText(e.toString());
+                   }
+                	
+                	
+                }
+            
         }
 
     }
@@ -104,26 +152,11 @@ public class MainActivity extends Activity {
                 .appendQueryParameter("scope", getSelectedScopes())
                 .appendQueryParameter("state", String.valueOf(SystemClock.uptimeMillis()));
     }
-    private Uri.Builder createAccessUri(String scheme, String authority, String path) {
-        return new Uri.Builder()
-                .scheme(scheme)
-                .authority(authority)
-                .path(path)
-                .appendQueryParameter("grant_type", "authorization_code")
-                .appendQueryParameter("code",CODE )
-                .appendQueryParameter("client_id", CLIENT_ID)
-                .appendQueryParameter("client_secret", CLIENT_SECRET)
-                .appendQueryParameter("redirect_uri", REDIRECT_URI);
-    }
-
+   
     private String getSelectedScopes() {
         StringBuilder sb = new StringBuilder();
-        if (mLocation.isChecked()) {
-            sb.append("location");
-        }
-        if (mActivity.isChecked()) {
-            sb.append(" activity");
-        }
+        sb.append("activity");
+        sb.append(" location");
         return sb.toString().trim();
     }
 
