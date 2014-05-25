@@ -10,7 +10,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
@@ -24,7 +23,6 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.os.SystemClock;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +33,6 @@ import android.widget.Toast;
 @SuppressLint({ "ShowToast", "NewApi" })
 public class MainActivity extends Activity {
 
-	private static final String TAG = "AppsDemo";
 
     private static final String CLIENT_ID = "krMl6FcP0kn1Hf00ElX0ai1WIzl65fEf";
 
@@ -126,7 +123,12 @@ public class MainActivity extends Activity {
                        String str_respuesta = EntityUtils.toString(respuesta.getEntity());
                        JSONObject json = new JSONObject(str_respuesta);
                        
-                       mTextView.setText("Access Token: "+json.getString("access_token"));
+                       
+                       //Llamamos a la nueva vista Preguntas
+                       Intent i = new Intent(this,Preguntas.class);
+                       i.putExtra("accessToken", json.getString("access_token"));
+                       i.putExtra("expires_in", json.getString("expires_in"));
+                       startActivity(i);
                    }catch(Exception e){
                        Toast.makeText(this, "Ocurrio un error: " + e.toString() , Toast.LENGTH_LONG).show();
                        mTextView.setText(e.toString());
