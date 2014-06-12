@@ -3,7 +3,9 @@ package com.example.movesapp;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -89,16 +91,24 @@ public class Preguntas extends Activity {
 		
 		
 		HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("https://api.moves-app.com/api/1.1/user/places/daily/201404?access_token="+access_token);
-        HttpResponse respuesta;
+		int date = 201406;
+        HttpGet request = new HttpGet("https://api.moves-app.com/api/1.1/user/places/daily/"+date+"?access_token="+access_token);
+        HttpResponse respuesta,respuesta2;
 		try {
 			respuesta = client.execute(request);
 	        str_respuesta = EntityUtils.toString(respuesta.getEntity());
-	        Log.e("JSON",str_respuesta);
+	     //   Log.d("JSON",recorre.substring(2, 7));
+	      //  str_respuesta = str_respuesta.substring(0, str_respuesta.length()-1)+","; 
+	     //   String cadenaNueva2 = r.substring(1, str_respuesta2.length());
+	      //  str_respuesta = "";
+	     //   str_respuesta = cadenaNueva + cadenaNueva2;
+	      //  Log.d("JSON",cadenaNueva);
+	      //  Log.d("JSON2",cadenaNueva2);
 		} catch (Exception e) {	
 			Toast.makeText(this, "Ocurrio un error llamando a la API: " + e.toString() , Toast.LENGTH_LONG).show();
-			pregunta.setText(e.toString());
+			//pregunta.setText(e.toString());
 		}
+		
 		try {
 			ejecutar(str_respuesta);
 		} catch (IOException e) {
@@ -177,17 +187,17 @@ public class Preguntas extends Activity {
 
 		
 		try{
+	
 			fecha = new SimpleDateFormat("yyyyMMdd",Locale.FRANCE).parse( segments.get(aleat).getDate());
 			inicio = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ",Locale.FRANCE).parse( segments.get(aleat).getSegments().get(aseg).getStartTime());
 			fin = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ",Locale.FRANCE).parse( segments.get(aleat).getSegments().get(aseg).getEndTime());
-		
 		}catch(Exception e){
 			Log.e("Fecha","Ocurrio un error con la fecha");
 			pregunta.setText(e.toString());
 		}
 		
 		Toast.makeText(this, ffecha.format(fecha) + " "+ fHora.format(inicio), Toast.LENGTH_LONG);
-		pregunta.setText("¿Dónde estuvo el día "+ffecha.format(fecha)+" desde las "+fHora.format(inicio)+" hasta las "+fHora.format(fin)+"?");
+		pregunta.setText("¿Dónde estuvo el día "+ffecha.format(fecha)+" "+getDiaSemana(fecha)+" desde las "+fHora.format(inicio)+" hasta las "+fHora.format(fin)+"?");
 		
 		
 		//validar primero verdadero
@@ -272,5 +282,35 @@ public class Preguntas extends Activity {
 		return i;
 	}
 	
-
+	public static String getDiaSemana(Date d){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(d);
+		String dia = "";
+		switch(cal.get(Calendar.DAY_OF_WEEK)){
+		case 1:
+			dia = "(Domingo)";
+			break;
+		case 2:
+			dia = "(Lunes)";
+			break;
+		case 3:
+			dia = "(Martes)";
+			break;
+		case 4:
+			dia = "(Miercoles)";
+			break;
+		case 5:
+			dia = "(Jueves)";
+			break;
+		case 6:
+			dia = "(Viernes)";
+			break;
+		case 7:
+			dia = "(Sabado)";
+			break;
+		
+		}
+		return dia;
+	}
+	
 }
