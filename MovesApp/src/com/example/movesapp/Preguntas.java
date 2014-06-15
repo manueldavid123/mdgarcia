@@ -47,8 +47,13 @@ public class Preguntas extends Activity {
 	private static Date inicio;
 	private static Date fin;
 	private static int contador = 1;
+	private static int aleat=0,aseg=0,af1=0,af2=0,asegf1=0,asegf2=0,salir=0;
+	private static String verdadero = null,falso1 = null,falso2 = null;
 	private static List<Resultados> lista = new ArrayList<Resultados>();
-	private ArrayList<Places> segments = new ArrayList<Places>();
+	private static ArrayList<Places> segments = new ArrayList<Places>();
+	@Override
+	public void onBackPressed(){
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,25 +91,45 @@ public class Preguntas extends Activity {
 		
 		
 		
-		
 		HttpClient client = new DefaultHttpClient();
 		int date = 201406;
-        HttpGet request = new HttpGet("https://api.moves-app.com/api/1.1/user/places/daily/"+date+"?access_token="+access_token);
-        HttpResponse respuesta,respuesta2;
-		try {
-			respuesta = client.execute(request);
-	        str_respuesta = EntityUtils.toString(respuesta.getEntity());
-	     //   Log.d("JSON",recorre.substring(2, 7));
-	      //  str_respuesta = str_respuesta.substring(0, str_respuesta.length()-1)+","; 
-	     //   String cadenaNueva2 = r.substring(1, str_respuesta2.length());
-	      //  str_respuesta = "";
-	     //   str_respuesta = cadenaNueva + cadenaNueva2;
-	      //  Log.d("JSON",cadenaNueva);
-	      //  Log.d("JSON2",cadenaNueva2);
-		} catch (Exception e) {	
-			Toast.makeText(this, "Ocurrio un error llamando a la API: " + e.toString() , Toast.LENGTH_LONG).show();
-			//pregunta.setText(e.toString());
-		}
+		Boolean cent = true;
+		do{
+	        HttpGet request = new HttpGet("https://api.moves-app.com/api/1.1/user/places/daily/"+date+"?access_token="+access_token);
+	        HttpResponse respuesta;
+	        String recorre = "";
+			try {
+				respuesta = client.execute(request);
+		        recorre = EntityUtils.toString(respuesta.getEntity());
+		        
+		      //  str_respuesta = str_respuesta.substring(0, str_respuesta.length()-1)+","; 
+		     //   String cadenaNueva2 = r.substring(1, str_respuesta2.length());
+		      //  str_respuesta = "";
+		     //   str_respuesta = cadenaNueva + cadenaNueva2;
+		      //  Log.d("JSON",cadenaNueva);
+		      //  Log.d("JSON2",cadenaNueva2);
+			} catch (Exception e) {	
+				Toast.makeText(this, "Ocurrio un error llamando a la API: " + e.toString() , Toast.LENGTH_LONG).show();
+				//pregunta.setText(e.toString());
+			}
+			
+			String error = recorre.substring(2, 7);
+			Log.d("Cadena error", error);
+	        if(error.equals("error")  || recorre == ""){
+	        	cent = false;
+	        } else{
+	        	if(str_respuesta == "" || str_respuesta == null){
+	        		str_respuesta = recorre;
+	        	}else{
+	        		str_respuesta = str_respuesta.substring(0, str_respuesta.length()-1)+",";
+	        		String cadenaNueva2 = recorre.substring(1, recorre.length());
+	        		str_respuesta += cadenaNueva2;
+	        	}
+	        	date = date -1;
+	        }
+	        Log.d("Fecha",date+"");
+	        
+		}while(cent);
 		
 		try {
 			ejecutar(str_respuesta);
@@ -132,55 +157,11 @@ public class Preguntas extends Activity {
         }
         SimpleDateFormat ffecha =  new SimpleDateFormat("dd 'de' MMMM", new Locale("es_ES"));
 		SimpleDateFormat fHora =  new SimpleDateFormat("HH:mm", new Locale("es_ES"));
-		int aleat=0,aseg=0,af1=0,af2=0,asegf1=0,asegf2=0,salir=0;
-		String verdadero = null,falso1 = null,falso2 = null;
+
 		
+		//Obtenemos los lugares
+		getLugares();
 		
-		do{
-			
-			aleat = aleatorio(0,segments,0,0); 
-			aseg = aleatorio(1,segments,aleat,0);
-			try{
-				verdadero = segments.get(aleat).getSegments().get(aseg).getPlace().getName();
-			}catch(Exception e){
-				Log.e("Verdadero" ,"Fallo en verdadero");
-			}
-			if(verdadero == null || verdadero.isEmpty()) {
-				Log.e("nullVerdadero","nulo");
-				verdadero = "";
-			}
-		}while( verdadero.length() < 2);
-		
-		
-		do{
-			af1 = aleatorio(2,segments,0,0);
-			asegf1 = aleatorio(1,segments,af1,0);
-			try{
-			falso1=segments.get(af1).getSegments().get(asegf1).getPlace().getName();
-			}catch(Exception e){
-				Log.e("Falso1","nulo");
-			}
-			if(falso1 == null || falso1.isEmpty()){
-				Log.e("nullFalso1","nulo"); 
-				falso1 = "";
-			}
-		}while(falso1.length()<2 || falso1.equals(verdadero));
-		
-		do{
-			af2 = aleatorio(2,segments,0,af1);	
-			asegf2 = aleatorio(1,segments,af2,asegf1);	
-			try{
-			falso2 = segments.get(af2).getSegments().get(asegf2).getPlace().getName();
-			}catch(Exception e){
-				Log.e("Fallo","Fallo en falso2");
-			}
-			if(falso2 == null || falso2 == ""){
-				Log.e("nullFalso2","nulo");
-				falso2 = "";
-			}
-		}while(falso2.length()<2 || (falso2.equals(falso1) || falso2.equals(verdadero)));
-		
-		Log.e("salir","sali del bucle");
 
 		
 		try{
@@ -194,7 +175,7 @@ public class Preguntas extends Activity {
 		}
 		
 		Toast.makeText(this, ffecha.format(fecha) + " "+ fHora.format(inicio), Toast.LENGTH_LONG);
-		pregunta.setText("¿Dónde estuvo el día "+ffecha.format(fecha)+" "+getDiaSemana(fecha)+" desde las "+fHora.format(inicio)+" hasta las "+fHora.format(fin)+"?");
+		pregunta.setText("¿Dónde estuvo el día "+ffecha.format(fecha)+" "+getDiaSemana(fecha)+"\n desde las "+fHora.format(inicio)+" hasta las "+fHora.format(fin)+"?");
 		
 		
 		//validar primero verdadero
@@ -309,5 +290,51 @@ public class Preguntas extends Activity {
 		}
 		return dia;
 	}
-	
+	public void getLugares(){
+		
+		do{
+			
+			aleat = aleatorio(0,segments,0,0); 
+			aseg = aleatorio(1,segments,aleat,0);
+			try{
+				verdadero = segments.get(aleat).getSegments().get(aseg).getPlace().getName();
+			}catch(Exception e){
+				Log.e("Verdadero" ,"Fallo en verdadero");
+			}
+			if(verdadero == null || verdadero.isEmpty()) {
+				Log.e("nullVerdadero","nulo");
+				verdadero = "";
+			}
+		}while( verdadero.length() < 2);
+		
+		
+		do{
+			af1 = aleatorio(2,segments,0,0);
+			asegf1 = aleatorio(1,segments,af1,0);
+			try{
+			falso1=segments.get(af1).getSegments().get(asegf1).getPlace().getName();
+			}catch(Exception e){
+				Log.e("Falso1","nulo");
+			}
+			if(falso1 == null || falso1.isEmpty()){
+				Log.e("nullFalso1","nulo"); 
+				falso1 = "";
+			}
+		}while(falso1.length()<2 || falso1.equals(verdadero));
+		
+		do{
+			af2 = aleatorio(2,segments,0,af1);	
+			asegf2 = aleatorio(1,segments,af2,asegf1);	
+			try{
+			falso2 = segments.get(af2).getSegments().get(asegf2).getPlace().getName();
+			}catch(Exception e){
+				Log.e("Fallo","Fallo en falso2");
+			}
+			if(falso2 == null || falso2 == ""){
+				Log.e("nullFalso2","nulo");
+				falso2 = "";
+			}
+		}while(falso2.length()<2 || (falso2.equals(falso1) || falso2.equals(verdadero)));
+		
+	}
 }

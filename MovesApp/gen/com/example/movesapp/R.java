@@ -21,8 +21,9 @@ public final class R {
     }
     public static final class id {
         public static final int Resultados=0x7f080009;
-        public static final int action_settings=0x7f08000a;
+        public static final int action_settings=0x7f08000b;
         public static final int authorizeInApp=0x7f080001;
+        public static final int listView1=0x7f08000a;
         public static final int pregunta=0x7f080002;
         public static final int radio0=0x7f080006;
         public static final int radio1=0x7f080007;
