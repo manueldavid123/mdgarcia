@@ -28,11 +28,8 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.movesapp.Results;
 import com.example.movesclass.Places;
-import com.example.movesclass.Respuestas;
 import com.example.movesclass.Resultados;
-import com.example.movesclass.Segments;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
