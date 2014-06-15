@@ -282,7 +282,7 @@ public class Preguntas extends Activity {
 	public static String getDiaSemana(Date d){
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(d);
-		String dia = "";
+		String dia = ""; 
 		switch(cal.get(Calendar.DAY_OF_WEEK)){
 		case 1:
 			dia = "(Domingo)";
